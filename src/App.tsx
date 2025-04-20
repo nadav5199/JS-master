@@ -14,7 +14,8 @@ function App() {
   }, []);
 
   function createTodo() {
-    client.models.CodeBlock.create({ description: window.prompt("Todo content") });
+    client.models.CodeBlock.create({ description: window.prompt("Todo content"),
+     title: window.prompt("Todo title")});
   }
 
   return (
