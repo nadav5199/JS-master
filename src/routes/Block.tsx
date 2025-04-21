@@ -22,6 +22,13 @@ function Block() {
                 setCodeBlock(result.data);
                 setCode(result.data?.skeletonCode || "");
 
+                // Increment signed count when a user enters the page
+                const currentSignedCount = result.data?.signed || 0;
+                await client.models.CodeBlock.update({
+                    id: id,
+                    signed: currentSignedCount + 1
+                });
+
                 if (!result.data?.hasMentor) {
                     // If no mentor, become the mentor and update the CodeBlock
                     await client.models.CodeBlock.update({
@@ -47,17 +54,28 @@ function Block() {
 
         // Cleanup function to handle user leaving
         return () => {
-            if (role === 'mentor' && id) {
-                // When mentor leaves, reset the hasMentor field
-                client.models.CodeBlock.update({
-                    id: id,
-                    hasMentor: false
+            if (id) {
+                // Decrement signed count when user leaves
+                client.models.CodeBlock.get({ id }).then((result) => {
+                    const currentSignedCount = result.data?.signed || 0;
+                    if (currentSignedCount > 0) {
+                        client.models.CodeBlock.update({
+                            id: id,
+                            signed: currentSignedCount - 1
+                        });
+                    }
+                    
+                    // If user is mentor, also reset hasMentor flag
+                    if (role === 'mentor') {
+                        client.models.CodeBlock.update({
+                            id: id,
+                            hasMentor: false
+                        });
+                    }
                 });
             }
         };
     }, [id]);
-
-    // ... rest of the component remains the same
 
     const handleCodeChange = (value: string) => {
         setCode(value);
@@ -73,11 +91,18 @@ function Block() {
                         <Typography variant="h4">
                             {codeBlock.title}
                         </Typography>
-                        <Chip
-                            label={role.toUpperCase()}
-                            color={role === "mentor" ? "primary" : "default"}
-                            sx={{ fontWeight: 'bold' }}
-                        />
+                        <Box>
+                            <Chip
+                                label={`${codeBlock.signed} viewer${codeBlock.signed !== 1 ? 's' : ''}`}
+                                color="secondary"
+                                sx={{ fontWeight: 'bold', mr: 1 }}
+                            />
+                            <Chip
+                                label={role.toUpperCase()}
+                                color={role === "mentor" ? "primary" : "default"}
+                                sx={{ fontWeight: 'bold' }}
+                            />
+                        </Box>
                     </Box>
                     <Typography variant="body1" paragraph>
                         {codeBlock.description}

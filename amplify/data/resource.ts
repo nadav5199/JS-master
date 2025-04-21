@@ -8,6 +8,7 @@ const schema = a.schema({
       description: a.string(),
       skeletonCode: a.string(),
       solution: a.string(),
+      signed: a.integer(),
       hasMentor: a.boolean(),
     })
     .authorization((allow) => [allow.publicApiKey()]),
