@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import type { Schema } from "../../amplify/data/resource";
-import { Card, CardContent, Typography, Box, Chip, List, ListItem, ListItemText, Divider, Tab, Tabs } from '@mui/material';
+import { Card, CardContent, Typography, Box, Chip, List, ListItem, ListItemText } from '@mui/material';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
