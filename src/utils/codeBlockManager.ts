@@ -153,4 +153,36 @@ export const deleteViewer = async (blockId: string): Promise<void> => {
       console.error('Error deleting viewer:', error);
     }
   }
+};
+
+// Fetch all student viewers for a code block
+export const fetchStudentViewers = async (codeId: string): Promise<Schema["Viewer"]["type"][]> => {
+  const result = await client.models.Viewer.list({
+    filter: { 
+      codeId: { eq: codeId },
+      role: { eq: "student" }
+    }
+  });
+  
+  return result.data || [];
+};
+
+// Subscribe to viewer changes for a code block
+export const subscribeToViewers = (
+  codeId: string,
+  onUpdate: (viewers: Schema["Viewer"]["type"][]) => void
+) => {
+  const subscription = client.models.Viewer.observeQuery({
+    filter: { 
+      codeId: { eq: codeId },
+      role: { eq: "student" }
+    }
+  }).subscribe({
+    next: (data) => {
+      onUpdate(data.items);
+    },
+    error: (error) => console.error('Viewer subscription error:', error)
+  });
+
+  return subscription;
 }; 
