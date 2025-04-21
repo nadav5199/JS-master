@@ -1,85 +1,58 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import type { Schema } from "../../amplify/data/resource";
-import { generateClient } from "aws-amplify/data";
 import { Card, CardContent, Typography, Box, Chip } from '@mui/material';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
-
-const client = generateClient<Schema>();
+import { 
+  Role, 
+  fetchCodeBlock,
+  incrementSignedCount, 
+  decrementSignedCount, 
+  determineUserRole, 
+  releaseMentorRole,
+  subscribeToCodeBlock
+} from "../utils/codeBlockManager";
 
 function Block() {
     const { id } = useParams();
     const [codeBlock, setCodeBlock] = useState<Schema["CodeBlock"]["type"] | null>(null);
     const [code, setCode] = useState("");
-    const [role, setRole] = useState<"mentor" | "student">("student");
+    const [role, setRole] = useState<Role>("student");
     const [hasIncremented, setHasIncremented] = useState(false);
 
     // Initial setup and counter increment
     useEffect(() => {
-        const fetchCodeBlock = async () => {
-            if (id) {
-                const result = await client.models.CodeBlock.get({ id });
-                setCodeBlock(result.data);
-                setCode(result.data?.skeletonCode || "");
+        const initializeCodeBlock = async () => {
+            if (!id) return;
+            
+            // Fetch code block data
+            const data = await fetchCodeBlock(id);
+            setCodeBlock(data);
+            setCode(data?.skeletonCode || "");
 
-                // Only increment the signed count if we haven't done so already
-                if (!hasIncremented) {
-                    const currentSignedCount = result.data?.signed || 0;
-                    await client.models.CodeBlock.update({
-                        id: id,
-                        signed: currentSignedCount + 1
-                    });
-                    setHasIncremented(true);
-                }
-
-                if (!result.data?.hasMentor) {
-                    // If no mentor, become the mentor and update the CodeBlock
-                    await client.models.CodeBlock.update({
-                        id: id,
-                        hasMentor: true
-                    });
-                    setRole('mentor');
-                    localStorage.setItem(`block-${id}-role`, 'mentor');
-                } else {
-                    // If there's already a mentor, check if we are the mentor
-                    const storedRole = localStorage.getItem(`block-${id}-role`);
-                    if (storedRole === 'mentor') {
-                        setRole('mentor');
-                    } else {
-                        setRole('student');
-                        localStorage.setItem(`block-${id}-role`, 'student');
-                    }
-                }
+            // Increment signed count
+            if (!hasIncremented) {
+                await incrementSignedCount(id);
+                setHasIncremented(true);
             }
+
+            // Determine user role
+            const userRole = await determineUserRole(id);
+            setRole(userRole);
         };
 
-        fetchCodeBlock();
+        initializeCodeBlock();
 
         // Cleanup function to handle user leaving
         return () => {
             if (id && hasIncremented) {
                 // Decrement signed count when user leaves
-                client.models.CodeBlock.get({ id }).then((result) => {
-                    const currentSignedCount = result.data?.signed || 0;
-                    if (currentSignedCount > 0) {
-                        client.models.CodeBlock.update({
-                            id: id,
-                            signed: currentSignedCount - 1
-                        });
-                    }
-                    
-                    // If user is mentor, also reset hasMentor flag
-                    if (role === 'mentor') {
-                        client.models.CodeBlock.update({
-                            id: id,
-                            hasMentor: false
-                        });
-                        localStorage.removeItem(`block-${id}-role`);
-                        setHasIncremented(false);
-                    }
-                });
+                decrementSignedCount(id);
+                
+                // Release mentor role if needed
+                releaseMentorRole(id, role);
             }
         };
     }, [id, hasIncremented, role]);
@@ -89,15 +62,8 @@ function Block() {
         if (!id) return;
         
         // Set up a real-time subscription to the specific code block
-        const subscription = client.models.CodeBlock.observeQuery({
-            filter: { id: { eq: id } }
-        }).subscribe({
-            next: (data) => {
-                if (data.items.length > 0) {
-                    setCodeBlock(data.items[0]);
-                }
-            },
-            error: (error) => console.error('Subscription error:', error)
+        const subscription = subscribeToCodeBlock(id, (updatedCodeBlock) => {
+            setCodeBlock(updatedCodeBlock);
         });
         
         return () => {
