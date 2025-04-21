@@ -3,16 +3,20 @@ import { type Schema } from "./resource";
 
 const defaultCodeBlocks = [
   {
-    title: "Hello World",
-    description: "A simple hello world example",
+    title: "Async Case",
+    description: "Use async/await to fetch todos and return the title of the first item.",
   },
   {
-    title: "Basic Loop",
-    description: "Example of a basic for loop in JavaScript",
+    title: "Array Unique",
+    description: "Write unique(arr) that returns a new array without duplicates.",
   },
   {
-    title: "Function Declaration",
-    description: "How to declare and use functions",
+    title: "Debounce Me",
+    description: "Create debounce(fn, delay) that defers fn until inactivity of delay ms.",
+  },
+  {
+    title: "Promise All",
+    description: "Write promiseAll(promises) that returns an array of results from promises.",
   },
 ];
 

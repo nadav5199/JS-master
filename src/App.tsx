@@ -1,39 +1,40 @@
 import { useEffect, useState } from "react";
 import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
+import { seedCodeBlocks } from "../amplify/data/seedData";
+
 
 const client = generateClient<Schema>();
 
 function App() {
-  const [todos, setTodos] = useState<Array<Schema["CodeBlock"]["type"]>>([]);
+  const [codeBlocks, setCodeBlocks] = useState<Array<Schema["CodeBlock"]["type"]>>([]);
+
+  useEffect(() => {
+    const initializeData = async () => {
+      try {
+        await seedCodeBlocks();
+      } catch (error) {
+        console.error('Error seeding CodeBlock table:', error);
+      }
+    };
+    initializeData();
+  }, []);
 
   useEffect(() => {
     client.models.CodeBlock.observeQuery().subscribe({
-      next: (data) => setTodos([...data.items]),
+      next: (data) => setCodeBlocks([...data.items]),
     });
   }, []);
 
-  function createTodo() {
-    client.models.CodeBlock.create({ description: window.prompt("Todo content"),
-     title: window.prompt("Todo title")});
-  }
 
   return (
     <main>
-      <h1>My todos</h1>
-      <button onClick={createTodo}>+ new</button>
+      <h1>choose a code block</h1>
       <ul>
-        {todos.map((todo) => (
-          <li key={todo.id}>{todo.description}</li>
+        {codeBlocks.map((codeBlock) => (
+          <li key={codeBlock.id}>{codeBlock.title}</li>
         ))}
       </ul>
-      <div>
-        🥳 App successfully hosted. Try creating a new todo.
-        <br />
-        <a href="https://docs.amplify.aws/react/start/quickstart/#make-frontend-updates">
-          Review next step of this tutorial.
-        </a>
-      </div>
     </main>
   );
 }
