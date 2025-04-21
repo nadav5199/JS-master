@@ -15,7 +15,8 @@ import {
   subscribeToCodeBlock,
   createViewer,
   getExistingViewer,
-  updateViewerCode
+  updateViewerCode,
+  deleteViewer
 } from "../utils/codeBlockManager";
 
 function Block() {
@@ -50,9 +51,10 @@ function Block() {
                 
                 setViewer(viewerData);
                 setCode(viewerData.code || data?.skeletonCode || "");
-
-                // Increment signed count
-                await incrementSignedCount(id);
+                if (viewerData.role === "student") {
+                    // Increment signed count
+                    await incrementSignedCount(id);
+                }
                 setHasIncremented(true);
             }
         };
@@ -67,6 +69,9 @@ function Block() {
                 
                 // Release mentor role if needed
                 releaseMentorRole(id, role);
+                
+                // Delete viewer instance when user leaves
+                deleteViewer(id);
             }
         };
     }, [id, hasIncremented]);

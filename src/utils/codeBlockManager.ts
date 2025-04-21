@@ -136,4 +136,21 @@ export const updateViewerCode = async (viewerId: string, code: string): Promise<
     id: viewerId,
     code: code
   });
+};
+
+// Delete a viewer instance
+export const deleteViewer = async (blockId: string): Promise<void> => {
+  const viewerId = localStorage.getItem(`block-${blockId}-viewer`);
+  
+  if (viewerId) {
+    try {
+      await client.models.Viewer.delete({
+        id: viewerId
+      });
+      // Remove viewer ID from local storage
+      localStorage.removeItem(`block-${blockId}-viewer`);
+    } catch (error) {
+      console.error('Error deleting viewer:', error);
+    }
+  }
 }; 
