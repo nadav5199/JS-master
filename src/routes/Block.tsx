@@ -12,7 +12,10 @@ import {
   decrementSignedCount, 
   determineUserRole, 
   releaseMentorRole,
-  subscribeToCodeBlock
+  subscribeToCodeBlock,
+  createViewer,
+  getExistingViewer,
+  updateViewerCode
 } from "../utils/codeBlockManager";
 
 function Block() {
@@ -21,6 +24,7 @@ function Block() {
     const [code, setCode] = useState("");
     const [role, setRole] = useState<Role>("student");
     const [hasIncremented, setHasIncremented] = useState(false);
+    const [viewer, setViewer] = useState<Schema["Viewer"]["type"] | null>(null);
 
     // Initial setup and counter increment
     useEffect(() => {
@@ -30,17 +34,27 @@ function Block() {
             // Fetch code block data
             const data = await fetchCodeBlock(id);
             setCodeBlock(data);
-            setCode(data?.skeletonCode || "");
+            
+            // Determine user role
+            const userRole = await determineUserRole(id);
+            setRole(userRole);
+            
+            // Get existing viewer or create new one
+            let viewerData = await getExistingViewer(id);
+            
+            if (!viewerData) {
+                // Create a new viewer
+                viewerData = await createViewer(id, userRole, data?.skeletonCode || "");
+            }
+            
+            setViewer(viewerData);
+            setCode(viewerData.code || data?.skeletonCode || "");
 
             // Increment signed count
             if (!hasIncremented) {
                 await incrementSignedCount(id);
                 setHasIncremented(true);
             }
-
-            // Determine user role
-            const userRole = await determineUserRole(id);
-            setRole(userRole);
         };
 
         initializeCodeBlock();
@@ -73,6 +87,11 @@ function Block() {
 
     const handleCodeChange = (value: string) => {
         setCode(value);
+        
+        // Update viewer code in database when it changes
+        if (viewer && viewer.id) {
+            updateViewerCode(viewer.id, value);
+        }
     };
 
     if (!codeBlock) return <div>Loading...</div>;

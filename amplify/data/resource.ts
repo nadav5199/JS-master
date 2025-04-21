@@ -10,8 +10,16 @@ const schema = a.schema({
       solution: a.string(),
       signed: a.integer(),
       hasMentor: a.boolean(),
-    })
-    .authorization((allow) => [allow.publicApiKey()]),
+      viewers: a.hasMany('Viewer', 'codeId')
+    }),
+  Viewer: a
+    .model({
+      id: a.id(),
+      role: a.string(),
+      code: a.string(),
+      codeId: a.id(),
+      codeBlocks: a.belongsTo('CodeBlock', 'codeId')
+    }),
 });
 
 export type Schema = ClientSchema<typeof schema>;

@@ -92,4 +92,48 @@ export const subscribeToCodeBlock = (
 export const fetchCodeBlock = async (blockId: string) => {
   const result = await client.models.CodeBlock.get({ id: blockId });
   return result.data;
+};
+
+// Create a viewer for a code block
+export const createViewer = async (
+  codeId: string, 
+  userRole: Role, 
+  initialCode: string
+): Promise<Schema["Viewer"]["type"]> => {
+  const viewer = await client.models.Viewer.create({
+    role: userRole,
+    code: initialCode,
+    codeId: codeId
+  });
+  
+  // Store the viewer ID in local storage for reference
+  if (viewer.data && viewer.data.id) {
+    localStorage.setItem(`block-${codeId}-viewer`, viewer.data.id);
+  }
+  
+  if (!viewer.data) {
+    throw new Error("Failed to create viewer");
+  }
+  
+  return viewer.data;
+};
+
+// Get existing viewer or return null if not found
+export const getExistingViewer = async (codeId: string): Promise<Schema["Viewer"]["type"] | null> => {
+  const viewerId = localStorage.getItem(`block-${codeId}-viewer`);
+  
+  if (viewerId) {
+    const result = await client.models.Viewer.get({ id: viewerId });
+    return result.data;
+  }
+  
+  return null;
+};
+
+// Update viewer code
+export const updateViewerCode = async (viewerId: string, code: string): Promise<void> => {
+  await client.models.Viewer.update({
+    id: viewerId,
+    code: code
+  });
 }; 
