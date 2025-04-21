@@ -14,6 +14,7 @@ function Block() {
     const [codeBlock, setCodeBlock] = useState<Schema["CodeBlock"]["type"] | null>(null);
     const [code, setCode] = useState("");
     const [role, setRole] = useState<"mentor" | "student">("student");
+    const [hasIncremented, setHasIncremented] = useState(false);
 
     useEffect(() => {
         const fetchCodeBlock = async () => {
@@ -22,12 +23,15 @@ function Block() {
                 setCodeBlock(result.data);
                 setCode(result.data?.skeletonCode || "");
 
-                // Increment signed count when a user enters the page
-                const currentSignedCount = result.data?.signed || 0;
-                await client.models.CodeBlock.update({
-                    id: id,
-                    signed: currentSignedCount + 1
-                });
+                // Only increment the signed count if we haven't done so already
+                if (!hasIncremented) {
+                    const currentSignedCount = result.data?.signed || 0;
+                    await client.models.CodeBlock.update({
+                        id: id,
+                        signed: currentSignedCount + 1
+                    });
+                    setHasIncremented(true);
+                }
 
                 if (!result.data?.hasMentor) {
                     // If no mentor, become the mentor and update the CodeBlock
@@ -54,7 +58,7 @@ function Block() {
 
         // Cleanup function to handle user leaving
         return () => {
-            if (id) {
+            if (id && hasIncremented) {
                 // Decrement signed count when user leaves
                 client.models.CodeBlock.get({ id }).then((result) => {
                     const currentSignedCount = result.data?.signed || 0;
@@ -75,7 +79,7 @@ function Block() {
                 });
             }
         };
-    }, [id]);
+    }, [id, hasIncremented, role]);
 
     const handleCodeChange = (value: string) => {
         setCode(value);
