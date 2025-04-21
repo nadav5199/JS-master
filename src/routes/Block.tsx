@@ -108,7 +108,7 @@ function Block() {
                         {codeBlock.description}
                     </Typography>
 
-                    {/* Code Editor */}
+                    {/* Code bb Editor */}
                     <Box sx={{ my: 3 }}>
                         <Typography variant="h6" gutterBottom>
                             Your Code:
