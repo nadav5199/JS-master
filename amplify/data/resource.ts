@@ -11,7 +11,8 @@ const schema = a.schema({
       signed: a.integer(),
       hasMentor: a.boolean(),
       viewers: a.hasMany('Viewer', 'codeId')
-    }),
+    })
+    .authorization(allow => allow.publicApiKey()),
   Viewer: a
     .model({
       id: a.id(),
@@ -19,7 +20,8 @@ const schema = a.schema({
       code: a.string(),
       codeId: a.id(),
       codeBlocks: a.belongsTo('CodeBlock', 'codeId')
-    }),
+    })
+    .authorization(allow => allow.publicApiKey()),
 });
 
 export type Schema = ClientSchema<typeof schema>;
