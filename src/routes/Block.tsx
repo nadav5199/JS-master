@@ -35,23 +35,23 @@ function Block() {
             const data = await fetchCodeBlock(id);
             setCodeBlock(data);
             
-            // Determine user role
-            const userRole = await determineUserRole(id);
-            setRole(userRole);
-            
-            // Get existing viewer or create new one
-            let viewerData = await getExistingViewer(id);
-            
-            if (!viewerData) {
-                // Create a new viewer
-                viewerData = await createViewer(id, userRole, data?.skeletonCode || "");
-            }
-            
-            setViewer(viewerData);
-            setCode(viewerData.code || data?.skeletonCode || "");
-
-            // Increment signed count
             if (!hasIncremented) {
+                // Determine user role and increment count only once
+                const userRole = await determineUserRole(id);
+                setRole(userRole);
+                
+                // Get existing viewer or create new one
+                let viewerData = await getExistingViewer(id);
+                
+                if (!viewerData) {
+                    // Create a new viewer
+                    viewerData = await createViewer(id, userRole, data?.skeletonCode || "");
+                }
+                
+                setViewer(viewerData);
+                setCode(viewerData.code || data?.skeletonCode || "");
+
+                // Increment signed count
                 await incrementSignedCount(id);
                 setHasIncremented(true);
             }
@@ -69,7 +69,7 @@ function Block() {
                 releaseMentorRole(id, role);
             }
         };
-    }, [id, hasIncremented, role]);
+    }, [id, hasIncremented]);
 
     // Real-time subscription for updates
     useEffect(() => {
