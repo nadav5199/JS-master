@@ -22,26 +22,42 @@ function Block() {
                 setCodeBlock(result.data);
                 setCode(result.data?.skeletonCode || "");
 
-                // Check if role is already assigned for this block
-                const blockRole = localStorage.getItem(`block-${id}-role`);
-                if (!blockRole) {
-                    // If no role is assigned, check if anyone else has the mentor role
-                    const isMentor = !localStorage.getItem(`block-${id}-has-mentor`);
-                    if (isMentor) {
-                        localStorage.setItem(`block-${id}-has-mentor`, 'true');
-                        localStorage.setItem(`block-${id}-role`, 'mentor');
+                if (!result.data?.hasMentor) {
+                    // If no mentor, become the mentor and update the CodeBlock
+                    await client.models.CodeBlock.update({
+                        id: id,
+                        hasMentor: true
+                    });
+                    setRole('mentor');
+                    localStorage.setItem(`block-${id}-role`, 'mentor');
+                } else {
+                    // If there's already a mentor, check if we are the mentor
+                    const storedRole = localStorage.getItem(`block-${id}-role`);
+                    if (storedRole === 'mentor') {
                         setRole('mentor');
                     } else {
-                        localStorage.setItem(`block-${id}-role`, 'student');
                         setRole('student');
+                        localStorage.setItem(`block-${id}-role`, 'student');
                     }
-                } else {
-                    setRole(blockRole as "mentor" | "student");
                 }
             }
         };
+
         fetchCodeBlock();
+
+        // Cleanup function to handle user leaving
+        return () => {
+            if (role === 'mentor' && id) {
+                // When mentor leaves, reset the hasMentor field
+                client.models.CodeBlock.update({
+                    id: id,
+                    hasMentor: false
+                });
+            }
+        };
     }, [id]);
+
+    // ... rest of the component remains the same
 
     const handleCodeChange = (value: string) => {
         setCode(value);
