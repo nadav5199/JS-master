@@ -16,6 +16,7 @@ function Block() {
     const [role, setRole] = useState<"mentor" | "student">("student");
     const [hasIncremented, setHasIncremented] = useState(false);
 
+    // Initial setup and counter increment
     useEffect(() => {
         const fetchCodeBlock = async () => {
             if (id) {
@@ -82,6 +83,27 @@ function Block() {
             }
         };
     }, [id, hasIncremented, role]);
+
+    // Real-time subscription for updates
+    useEffect(() => {
+        if (!id) return;
+        
+        // Set up a real-time subscription to the specific code block
+        const subscription = client.models.CodeBlock.observeQuery({
+            filter: { id: { eq: id } }
+        }).subscribe({
+            next: (data) => {
+                if (data.items.length > 0) {
+                    setCodeBlock(data.items[0]);
+                }
+            },
+            error: (error) => console.error('Subscription error:', error)
+        });
+        
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [id]);
 
     const handleCodeChange = (value: string) => {
         setCode(value);
