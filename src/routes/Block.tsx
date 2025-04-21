@@ -75,6 +75,7 @@ function Block() {
                             id: id,
                             hasMentor: false
                         });
+                        localStorage.removeItem(`block-${id}-role`);
                     }
                 });
             }
