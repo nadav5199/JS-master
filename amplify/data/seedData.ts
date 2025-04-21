@@ -5,18 +5,26 @@ const defaultCodeBlocks = [
   {
     title: "Async Case",
     description: "Use async/await to fetch todos and return the title of the first item.",
+    skeletonCode: 'async function fetchUserName(userId) {',
+    solution: 'async function fetchUserName(userId) {',
   },
   {
     title: "Array Unique",
     description: "Write unique(arr) that returns a new array without duplicates.",
+    skeletonCode: 'function unique(arr) {',
+    solution: 'function unique(arr) {',
   },
   {
     title: "Debounce Me",
     description: "Create debounce(fn, delay) that defers fn until inactivity of delay ms.",
+    skeletonCode: 'function debounce(fn, delay) {',
+    solution: 'function debounce(fn, delay) {',
   },
   {
     title: "Promise All",
     description: "Write promiseAll(promises) that returns an array of results from promises.",
+    skeletonCode: 'function promiseAll(promises) {',
+    solution: 'function promiseAll(promises) {',
   },
 ];
 

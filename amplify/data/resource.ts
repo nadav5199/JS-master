@@ -6,6 +6,8 @@ const schema = a.schema({
       id: a.id(),
       title: a.string(),
       description: a.string(),
+      skeletonCode: a.string(),
+      solution: a.string(),
     })
     .authorization((allow) => [allow.publicApiKey()]),
 });
