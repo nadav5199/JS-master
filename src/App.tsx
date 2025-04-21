@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
 import { seedCodeBlocks } from "../amplify/data/seedData";
-
+import CodeBlocksCard from "./components/CodeBlocksCard";
 
 const client = generateClient<Schema>();
 
@@ -30,11 +30,9 @@ function App() {
   return (
     <main>
       <h1>choose a code block</h1>
-      <ul>
         {codeBlocks.map((codeBlock) => (
-          <li key={codeBlock.id}>{codeBlock.title}</li>
+          <CodeBlocksCard key={codeBlock.id} title={codeBlock.title ?? ""} description={codeBlock.description ?? ""} />
         ))}
-      </ul>
     </main>
   );
 }
