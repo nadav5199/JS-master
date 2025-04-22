@@ -33,25 +33,43 @@ export const decrementSignedCount = async (blockId: string): Promise<void> => {
 export const determineUserRole = async (
   blockId: string
 ): Promise<Role> => {
-  const result = await client.models.CodeBlock.get({ id: blockId });
-  
-  if (!result.data?.hasMentor) {
-    // If no mentor, become the mentor
-    await client.models.CodeBlock.update({
-      id: blockId,
-      hasMentor: true
-    });
-    localStorage.setItem(`block-${blockId}-role`, 'mentor');
-    return 'mentor';
-  } else {
-    // If there's already a mentor, check if we are the mentor
-    const storedRole = localStorage.getItem(`block-${blockId}-role`);
-    if (storedRole === 'mentor') {
+  // Check if user was previously a mentor for this block
+  const storedRole = localStorage.getItem(`block-${blockId}-role`);
+  if (storedRole === 'mentor') {
+    // Verify that the mentor flag is still set in the database
+    const result = await client.models.CodeBlock.get({ id: blockId });
+    if (result.data?.hasMentor) {
       return 'mentor';
-    } else {
-      localStorage.setItem(`block-${blockId}-role`, 'student');
-      return 'student';
     }
+    // If hasMentor is false, we need to try to become a mentor again
+  }
+
+  // Try to acquire the mentor role with optimistic concurrency control
+  try {
+    const result = await client.models.CodeBlock.get({ id: blockId });
+    
+    if (!result.data?.hasMentor) {
+      // First get the current state to check if we can become mentor
+      const updatedBlock = await client.models.CodeBlock.update({
+        id: blockId,
+        hasMentor: true
+      });
+      
+      if (updatedBlock.data) {
+        // Successfully acquired mentor role
+        localStorage.setItem(`block-${blockId}-role`, 'mentor');
+        return 'mentor';
+      }
+    }
+    
+    // If we get here, someone else is the mentor or version check failed
+    localStorage.setItem(`block-${blockId}-role`, 'student');
+    return 'student';
+  } catch (error) {
+    // If update fails due to version conflict, someone else became mentor first
+    console.error('Failed to update mentor status:', error);
+    localStorage.setItem(`block-${blockId}-role`, 'student');
+    return 'student';
   }
 };
 
