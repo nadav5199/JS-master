@@ -19,6 +19,9 @@ import {
 } from "../utils/codeBlockManager";
 import StudentView from "../components/StudentView.tsx";
 import MentorView from "../components/MentorView.tsx";
+import { generateClient } from "aws-amplify/data";
+
+const client = generateClient<Schema>();
 
 function Block() {
     const { id } = useParams();
@@ -116,6 +119,34 @@ function Block() {
             if (updatedViewers.length > 0 && (!selectedStudent || !updatedViewers.find(v => v.id === selectedStudent))) {
                 setSelectedStudent(updatedViewers[0].id || null);
             }
+        });
+        
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [id, role, selectedStudent]);
+
+    // Add a new useEffect hook to subscribe to selected student's code changes
+    useEffect(() => {
+        if (!id || role !== 'mentor' || !selectedStudent) return;
+        
+        // Find current code for this student
+        const student = studentViewers.find(v => v.id === selectedStudent);
+        if (student) {
+            setCode(student.code || "");
+        }
+        
+        // Set up subscription for just this viewer's code changes
+        const subscription = client.models.Viewer.observeQuery({
+            filter: { id: { eq: selectedStudent } }
+        }).subscribe({
+            next: (data) => {
+                if (data.items.length > 0) {
+                    const updatedStudent = data.items[0];
+                    setCode(updatedStudent.code || "");
+                }
+            },
+            error: (error) => console.error('Student code subscription error:', error)
         });
         
         return () => {
