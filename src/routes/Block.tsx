@@ -130,13 +130,21 @@ function Block() {
     useEffect(() => {
         if (!id || role !== 'mentor' || !selectedStudent) return;
         
-        // Find current code for this student
-        const student = studentViewers.find(v => v.id === selectedStudent);
-        if (student) {
-            setCode(student.code || "");
-        }
+        // Fetch the selected student's latest code immediately
+        const fetchSelectedStudentCode = async () => {
+            try {
+                const result = await client.models.Viewer.get({ id: selectedStudent });
+                if (result.data) {
+                    setCode(result.data.code || "");
+                }
+            } catch (error) {
+                console.error('Error fetching student code:', error);
+            }
+        };
         
-        // Set up subscription for just this viewer's code changes
+        fetchSelectedStudentCode();
+        
+        // Set up subscription for real-time updates to this viewer's code
         const subscription = client.models.Viewer.observeQuery({
             filter: { id: { eq: selectedStudent } }
         }).subscribe({
