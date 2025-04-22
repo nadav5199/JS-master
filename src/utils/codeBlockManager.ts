@@ -175,14 +175,22 @@ export const deleteViewer = async (blockId: string): Promise<void> => {
 
 // Fetch all student viewers for a code block
 export const fetchStudentViewers = async (codeId: string): Promise<Schema["Viewer"]["type"][]> => {
-  const result = await client.models.Viewer.list({
-    filter: { 
-      codeId: { eq: codeId },
-      role: { eq: "student" }
-    }
-  });
-  
-  return result.data || [];
+  try {
+    const result = await client.models.Viewer.list({
+      filter: { 
+        codeId: { eq: codeId },
+        role: { eq: "student" }
+      },
+      // If limit is available, include it
+      ...(client.models.Viewer.list.length !== undefined ? { limit: 100 } : {})
+    });
+    
+    console.log('Fetched students:', result.data?.length || 0);
+    return result.data || [];
+  } catch (error) {
+    console.error('Error fetching student viewers:', error);
+    return [];
+  }
 };
 
 // Subscribe to viewer changes for a code block
@@ -197,6 +205,7 @@ export const subscribeToViewers = (
     }
   }).subscribe({
     next: (data) => {
+      console.log('Student viewers update:', data.items.length, 'students');
       onUpdate(data.items);
     },
     error: (error) => console.error('Viewer subscription error:', error)

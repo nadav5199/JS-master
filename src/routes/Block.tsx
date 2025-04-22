@@ -115,8 +115,8 @@ function Block() {
         // Subscribe to student viewers changes
         const subscription = subscribeToViewers(id, (updatedViewers) => {
             setStudentViewers(updatedViewers);
-            // Maintain selection or select first if none selected
-            if (updatedViewers.length > 0 && (!selectedStudent || !updatedViewers.find(v => v.id === selectedStudent))) {
+            // Only auto-select if no student is currently selected
+            if (!selectedStudent && updatedViewers.length > 0) {
                 setSelectedStudent(updatedViewers[0].id || null);
             }
         });
