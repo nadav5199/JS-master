@@ -12,9 +12,20 @@ interface MentorViewProps {
     studentViewers: Schema["Viewer"]["type"][];
     selectedStudent: string | null;
     onStudentSelect: (studentId: string) => void;
+    studentCodeMap: Record<string, string>;
 }
 
-function MentorView({ codeBlock, code, role, studentViewers, selectedStudent, onStudentSelect }: MentorViewProps) {
+function MentorView({ 
+    codeBlock, 
+    role, 
+    studentViewers, 
+    selectedStudent, 
+    onStudentSelect,
+    studentCodeMap
+}: MentorViewProps) {
+    // Get the selected student's code from the map
+    const selectedStudentCode = selectedStudent ? studentCodeMap[selectedStudent] || "" : "";
+    
     return (
         <Card>
             <CardContent>
@@ -44,7 +55,7 @@ function MentorView({ codeBlock, code, role, studentViewers, selectedStudent, on
                     {/* Student List */}
                     <Box sx={{ width: '25%', borderRight: '1px solid #e0e0e0', pr: 2 }}>
                         <Typography variant="h6" gutterBottom>
-                            Students
+                            Students ({studentViewers.length})
                         </Typography>
                         {studentViewers.length > 0 ? (
                             <List>
@@ -83,7 +94,7 @@ function MentorView({ codeBlock, code, role, studentViewers, selectedStudent, on
                         </Typography>
                         {selectedStudent ? (
                             <CodeMirror
-                                value={code}
+                                value={selectedStudentCode}
                                 height="400px"
                                 theme={oneDark}
                                 extensions={[javascript({ jsx: true })]}

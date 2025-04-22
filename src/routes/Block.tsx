@@ -32,6 +32,7 @@ function Block() {
     const [viewer, setViewer] = useState<Schema["Viewer"]["type"] | null>(null);
     const [studentViewers, setStudentViewers] = useState<Schema["Viewer"]["type"][]>([]);
     const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+    const [studentCodeMap, setStudentCodeMap] = useState<Record<string, string>>({});
 
     // Initial setup and counter increment
     useEffect(() => {
@@ -128,39 +129,43 @@ function Block() {
 
     // Add a new useEffect hook to subscribe to selected student's code changes
     useEffect(() => {
-        if (!id || role !== 'mentor' || !selectedStudent) return;
+        if (!id || role !== 'mentor') return;
         
-        // Fetch the selected student's latest code immediately
-        const fetchSelectedStudentCode = async () => {
-            try {
-                const result = await client.models.Viewer.get({ id: selectedStudent });
+        // Create subscriptions for all student viewers
+        const subscriptions = studentViewers.map(student => {
+            if (!student.id) return null;
+            
+            // First get the initial code
+            client.models.Viewer.get({ id: student.id }).then(result => {
                 if (result.data) {
-                    setCode(result.data.code || "");
+                    setStudentCodeMap(prev => ({
+                        ...prev,
+                        [student.id || '']: result.data?.code || ''
+                    }));
                 }
-            } catch (error) {
-                console.error('Error fetching student code:', error);
-            }
-        };
-        
-        fetchSelectedStudentCode();
-        
-        // Set up subscription for real-time updates to this viewer's code
-        const subscription = client.models.Viewer.observeQuery({
-            filter: { id: { eq: selectedStudent } }
-        }).subscribe({
-            next: (data) => {
-                if (data.items.length > 0) {
-                    const updatedStudent = data.items[0];
-                    setCode(updatedStudent.code || "");
-                }
-            },
-            error: (error) => console.error('Student code subscription error:', error)
-        });
+            });
+            
+            // Then subscribe to changes
+            return client.models.Viewer.observeQuery({
+                filter: { id: { eq: student.id } }
+            }).subscribe({
+                next: (data) => {
+                    if (data.items.length > 0) {
+                        const updatedStudent = data.items[0];
+                        setStudentCodeMap(prev => ({
+                            ...prev,
+                            [student.id || '']: updatedStudent.code || ''
+                        }));
+                    }
+                },
+                error: (error) => console.error(`Student code subscription error for ${student.id}:`, error)
+            });
+        }).filter(Boolean);
         
         return () => {
-            subscription.unsubscribe();
+            subscriptions.forEach(sub => sub?.unsubscribe());
         };
-    }, [id, role, selectedStudent]);
+    }, [id, role, studentViewers]);
 
     const handleCodeChange = (value: string) => {
         setCode(value);
@@ -172,12 +177,9 @@ function Block() {
     };
 
     const handleStudentSelect = (studentId: string) => {
+        console.log('Selected student:', studentId);
         setSelectedStudent(studentId);
-        // Find the selected student's code
-        const student = studentViewers.find(v => v.id === studentId);
-        if (student) {
-            setCode(student.code || "");
-        }
+        // No need to update code here - the MentorView will get it from the code map
     };
 
     if (!codeBlock) return <div>Loading...</div>;
@@ -200,6 +202,7 @@ function Block() {
                     studentViewers={studentViewers}
                     selectedStudent={selectedStudent}
                     onStudentSelect={handleStudentSelect}
+                    studentCodeMap={studentCodeMap}
                 />
             )}
         </Box>
