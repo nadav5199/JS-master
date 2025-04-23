@@ -65,7 +65,7 @@ export const getChatResponse = async (
     const messages = [
       {
         role: "system",
-        content: "You are a helpful coding teacher assistant. Help students understand concepts but avoid giving direct solutions. Your explanations should be clear, educational, and guide the student's learning process."
+        content: "You are a helpful coding teacher assistant. Help students understand concepts but avoid giving direct solutions. Your explanations should be clear, educational, and guide the student's learning process, but don't give the solution directly or even telling them part of the solution."
       },
       // Context message with problem details
       {
