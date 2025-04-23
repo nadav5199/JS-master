@@ -1,9 +1,11 @@
-import { Card, CardContent, Typography, Box, Chip, List, ListItem, ListItemText } from '@mui/material';
+// src/components/MentorView.tsx
+import { Card, CardContent, Typography, Box, Chip } from '@mui/material';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
 import type { Schema } from "../../amplify/data/resource";
 import { Role } from "../utils/codeBlockManager";
+import StudentList from "./StudentList";
 
 interface MentorViewProps {
     codeBlock: Schema["CodeBlock"]["type"];
@@ -15,23 +17,23 @@ interface MentorViewProps {
     studentCodeMap: Record<string, string>;
 }
 
-function MentorView({ 
-    codeBlock, 
-    role, 
-    studentViewers, 
-    selectedStudent, 
+function MentorView({
+    codeBlock,
+    role,
+    studentViewers,
+    selectedStudent,
     onStudentSelect,
     studentCodeMap
 }: MentorViewProps) {
     // Get the selected student's code from the map
     const selectedStudentCode = selectedStudent ? studentCodeMap[selectedStudent] || "" : "";
-    
+
     return (
         <Card>
             <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Typography variant="h4">
-                        {codeBlock.title} 
+                        {codeBlock.title}
                     </Typography>
                     <Box>
                         <Chip
@@ -54,37 +56,11 @@ function MentorView({
                 <Box sx={{ display: 'flex', mt: 3 }}>
                     {/* Student List */}
                     <Box sx={{ width: '25%', borderRight: '1px solid #e0e0e0', pr: 2 }}>
-                        <Typography variant="h6" gutterBottom>
-                            Students ({studentViewers.length})
-                        </Typography>
-                        {studentViewers.length > 0 ? (
-                            <List>
-                                {studentViewers.map((studentViewer) => (
-                                    <ListItem 
-                                        key={studentViewer.id}
-                                        onClick={() => onStudentSelect(studentViewer.id || "")}
-                                        sx={{ 
-                                            borderRadius: 1, 
-                                            mb: 1,
-                                            bgcolor: selectedStudent === studentViewer.id ? 'action.selected' : 'transparent',
-                                            '&:hover': {
-                                                bgcolor: 'action.hover',
-                                            },
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        <ListItemText 
-                                            primary={`Student ${studentViewers.indexOf(studentViewer) + 1}`} 
-                                            secondary={`ID: ${studentViewer.id ? studentViewer.id.substring(0, 8) : 'unknown'}...`}
-                                        />
-                                    </ListItem>
-                                ))}
-                            </List>
-                        ) : (
-                            <Typography variant="body2" color="text.secondary">
-                                No students connected yet.
-                            </Typography>
-                        )}
+                        <StudentList
+                            studentViewers={studentViewers}
+                            selectedStudent={selectedStudent}
+                            onStudentSelect={onStudentSelect}
+                        />
                     </Box>
 
                     {/* Student Code View */}
@@ -117,4 +93,4 @@ function MentorView({
     );
 }
 
-export default MentorView; 
+export default MentorView;
