@@ -1,4 +1,4 @@
-import { Card, CardContent, Typography, Box } from '@mui/material';
+import { Card, CardContent, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 function CodeBlocksCard({title, description, id}: {title: string, description: string, id: string}) {
