@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import type { Schema } from "../../amplify/data/resource";
 import { Box } from '@mui/material';
 import { 
@@ -25,6 +25,7 @@ const client = generateClient<Schema>();
 
 function Block() {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [codeBlock, setCodeBlock] = useState<Schema["CodeBlock"]["type"] | null>(null);
     const [code, setCode] = useState("");
     const [role, setRole] = useState<Role>("student");
@@ -33,6 +34,7 @@ function Block() {
     const [studentViewers, setStudentViewers] = useState<Schema["Viewer"]["type"][]>([]);
     const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
     const [studentCodeMap, setStudentCodeMap] = useState<Record<string, string>>({});
+    const [previousHasMentor, setPreviousHasMentor] = useState<boolean | null>(null);
 
     // Initial setup and counter increment
     useEffect(() => {
@@ -42,6 +44,10 @@ function Block() {
             // Fetch code block data
             const data = await fetchCodeBlock(id);
             setCodeBlock(data);
+            
+            if (data) {
+                setPreviousHasMentor(data.hasMentor);
+            }
             
             if (!hasIncremented) {
                 // Determine user role and increment count only once
@@ -90,12 +96,22 @@ function Block() {
         // Set up a real-time subscription to the specific code block
         const subscription = subscribeToCodeBlock(id, (updatedCodeBlock) => {
             setCodeBlock(updatedCodeBlock);
+            
+            // Check if mentor status has changed from true to false
+            if (previousHasMentor === true && updatedCodeBlock.hasMentor === false && role === 'student') {
+                console.log('Mentor has left the room, redirecting to lobby');
+                // Redirect to lobby if we're a student and mentor has left
+                navigate('/');
+            }
+            
+            // Update previous state
+            setPreviousHasMentor(updatedCodeBlock.hasMentor ?? null);
         });
         
         return () => {
             subscription.unsubscribe();
         };
-    }, [id]);
+    }, [id, previousHasMentor, role, navigate]);
 
     // Fetch student viewers if user is a mentor
     useEffect(() => {
