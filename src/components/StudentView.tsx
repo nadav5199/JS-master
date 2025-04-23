@@ -1,10 +1,11 @@
-import { Card, CardContent, Typography, Box, Chip } from '@mui/material';
+import { Card, CardContent, Typography, Box, Chip, Button } from '@mui/material';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
 import type { Schema } from "../../amplify/data/resource";
 import { Role, updateViewerSolvedStatus, checkSolution } from "../utils/codeBlockManager";
 import { useEffect, useState } from 'react';
+import { getHint } from '../utils/openAiService.js';
 
 interface StudentViewProps {
     codeBlock: Schema["CodeBlock"]["type"];
@@ -16,6 +17,8 @@ interface StudentViewProps {
 
 function StudentView({ codeBlock, code, role, onCodeChange, viewerId }: StudentViewProps) {
     const [isSolved, setIsSolved] = useState(false);
+    const [hint, setHint] = useState<string | null>(null);
+    const [isLoadingHint, setIsLoadingHint] = useState(false);
 
     // Check if code matches solution whenever code or codeBlock changes
     useEffect(() => {
@@ -29,6 +32,26 @@ function StudentView({ codeBlock, code, role, onCodeChange, viewerId }: StudentV
             }
         }
     }, [code, codeBlock, viewerId]);
+
+    const handleGetHint = async () => {
+        if (!code || !codeBlock || !codeBlock.solution || !codeBlock.description || !codeBlock.skeletonCode) return;
+        
+        setIsLoadingHint(true);
+        try {
+            const hintText = await getHint(
+                code, 
+                codeBlock.description, 
+                codeBlock.skeletonCode,
+                codeBlock.solution
+            );
+            setHint(hintText);
+        } catch (error) {
+            console.error('Error getting hint:', error);
+            setHint('Sorry, unable to generate a hint at this time.');
+        } finally {
+            setIsLoadingHint(false);
+        }
+    };
 
     return (
         <Card>
@@ -70,6 +93,36 @@ function StudentView({ codeBlock, code, role, onCodeChange, viewerId }: StudentV
                         </Typography>
                         <Typography variant="h6" sx={{ color: 'success.dark', fontWeight: 'bold' }}>
                             Great job! Your solution is correct!
+                        </Typography>
+                    </Box>
+                )}
+
+                {/* Hint section */}
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                    <Button 
+                        variant="outlined" 
+                        color="primary" 
+                        onClick={handleGetHint}
+                        disabled={isLoadingHint || isSolved}
+                    >
+                        {isLoadingHint ? 'Getting Hint...' : 'Get Hint'}
+                    </Button>
+                </Box>
+                
+                {hint && (
+                    <Box sx={{ 
+                        my: 2, 
+                        p: 2, 
+                        backgroundColor: 'info.light', 
+                        borderRadius: 2,
+                        border: '1px solid',
+                        borderColor: 'info.main'
+                    }}>
+                        <Typography variant="h6" gutterBottom>
+                            Hint:
+                        </Typography>
+                        <Typography variant="body1">
+                            {hint}
                         </Typography>
                     </Box>
                 )}
