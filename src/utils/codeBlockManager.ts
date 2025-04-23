@@ -255,4 +255,110 @@ export const updateViewerSolvedStatus = async (viewerId: string, solved: boolean
     id: viewerId,
     solved: solved
   });
+};
+
+// Subscribe to student code changes
+export const subscribeToStudentCode = (
+  studentViewers: Schema["Viewer"]["type"][], 
+  onCodeUpdate: (studentId: string, code: string) => void
+) => {
+  // Create subscriptions for all student viewers
+  const subscriptions = studentViewers.map(student => {
+    if (!student.id) return null;
+    
+    // First get the initial code
+    client.models.Viewer.get({ id: student.id }).then(result => {
+      if (result.data) {
+        onCodeUpdate(student.id || '', result.data?.code || '');
+      }
+    });
+    
+    // Then subscribe to changes
+    return client.models.Viewer.observeQuery({
+      filter: { id: { eq: student.id } }
+    }).subscribe({
+      next: (data) => {
+        if (data.items.length > 0) {
+          const updatedStudent = data.items[0];
+          onCodeUpdate(student.id || '', updatedStudent.code || '');
+        }
+      },
+      error: (error) => console.error(`Student code subscription error for ${student.id}:`, error)
+    });
+  }).filter(Boolean);
+  
+  return subscriptions;
+};
+
+// Handle solution checking 
+export const checkSolution = (code: string, solution: string): boolean => {
+  if (!solution || !code) return false;
+  
+  // Compare the user's code with the solution
+  // Trim both to ignore whitespace differences
+  const normalizedCode = code.trim();
+  const normalizedSolution = solution.trim();
+  return normalizedCode === normalizedSolution;
+};
+
+// Initialize code block session
+export const initializeSession = async (blockId: string) => {
+  if (!blockId) return null;
+  
+  // Fetch code block data
+  const data = await fetchCodeBlock(blockId);
+  if (!data) return null;
+  
+  // Determine user role
+  const userRole = await determineUserRole(blockId);
+  
+  // Get existing viewer or create new one
+  let viewerData = await getExistingViewer(blockId);
+  
+  if (!viewerData) {
+    // Create a new viewer
+    viewerData = await createViewer(blockId, userRole, data?.skeletonCode || "");
+  }
+  
+  // Increment signed count for student
+  if (viewerData.role === "student") {
+    await incrementSignedCount(blockId);
+  }
+  
+  return {
+    codeBlock: data,
+    role: userRole,
+    viewer: viewerData,
+    code: viewerData.code || data?.skeletonCode || "",
+  };
+};
+
+// Handle cleanup when leaving a block
+export const cleanupSession = (blockId: string, role: Role): void => {
+  if (!blockId) return;
+  
+  // Decrement signed count when user leaves
+  decrementSignedCount(blockId);
+  
+  // Release mentor role if needed
+  releaseMentorRole(blockId, role);
+  
+  // Delete viewer instance when user leaves
+  deleteViewer(blockId);
+};
+
+// Handle mentor checking for student leaving
+export const handleMentorStatusChange = (
+  previousHasMentor: boolean | null, 
+  currentHasMentor: boolean | null, 
+  role: Role,
+  onMentorLeave: () => void
+): boolean | null => {
+  // Check if mentor status has changed from true to false
+  if (previousHasMentor === true && currentHasMentor === false && role === 'student') {
+    console.log('Mentor has left the room, redirecting to lobby');
+    onMentorLeave();
+  }
+  
+  return currentHasMentor;
 }; 

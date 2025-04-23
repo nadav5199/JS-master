@@ -3,7 +3,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
 import type { Schema } from "../../amplify/data/resource";
-import { Role, updateViewerSolvedStatus } from "../utils/codeBlockManager";
+import { Role, updateViewerSolvedStatus, checkSolution } from "../utils/codeBlockManager";
 import { useEffect, useState } from 'react';
 
 interface StudentViewProps {
@@ -20,11 +20,7 @@ function StudentView({ codeBlock, code, role, onCodeChange, viewerId }: StudentV
     // Check if code matches solution whenever code or codeBlock changes
     useEffect(() => {
         if (codeBlock?.solution && code) {
-            // Compare the user's code with the solution
-            // Trim both to ignore whitespace differences
-            const normalizedCode = code.trim();
-            const normalizedSolution = codeBlock.solution.trim();
-            const solved = normalizedCode === normalizedSolution;
+            const solved = checkSolution(code, codeBlock.solution);
             setIsSolved(solved);
             
             // Update solved status in the database if viewerId is provided
