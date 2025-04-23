@@ -4,6 +4,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
 import type { Schema } from "../../amplify/data/resource";
 import { Role } from "../utils/codeBlockManager";
+import { useEffect, useState } from 'react';
 
 interface StudentViewProps {
     codeBlock: Schema["CodeBlock"]["type"];
@@ -13,6 +14,19 @@ interface StudentViewProps {
 }
 
 function StudentView({ codeBlock, code, role, onCodeChange }: StudentViewProps) {
+    const [isSolved, setIsSolved] = useState(false);
+
+    // Check if code matches solution whenever code or codeBlock changes
+    useEffect(() => {
+        if (codeBlock?.solution && code) {
+            // Compare the user's code with the solution
+            // Trim both to ignore whitespace differences
+            const normalizedCode = code.trim();
+            const normalizedSolution = codeBlock.solution.trim();
+            setIsSolved(normalizedCode === normalizedSolution);
+        }
+    }, [code, codeBlock]);
+
     return (
         <Card>
             <CardContent>
@@ -36,6 +50,26 @@ function StudentView({ codeBlock, code, role, onCodeChange }: StudentViewProps) 
                 <Typography variant="body1" paragraph>
                     {codeBlock.description}
                 </Typography>
+
+                {/* Show big smiley face when solution is correct */}
+                {isSolved && (
+                    <Box 
+                        sx={{ 
+                            textAlign: 'center', 
+                            my: 2, 
+                            p: 2, 
+                            backgroundColor: 'success.light',
+                            borderRadius: 2
+                        }}
+                    >
+                        <Typography variant="h1" sx={{ fontSize: '80px' }}>
+                            😊
+                        </Typography>
+                        <Typography variant="h6" sx={{ color: 'success.dark', fontWeight: 'bold' }}>
+                            Great job! Your solution is correct!
+                        </Typography>
+                    </Box>
+                )}
 
                 {/* Code Editor */}
                 <Box sx={{ my: 3 }}>
