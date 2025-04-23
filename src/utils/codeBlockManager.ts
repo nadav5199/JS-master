@@ -314,14 +314,16 @@ export const initializeSession = async (blockId: string) => {
   
   // Get existing viewer or create new one
   let viewerData = await getExistingViewer(blockId);
+  let isNewViewer = false;
   
   if (!viewerData) {
     // Create a new viewer
     viewerData = await createViewer(blockId, userRole, data?.skeletonCode || "");
+    isNewViewer = true;
   }
   
-  // Increment signed count for student
-  if (viewerData.role === "student") {
+  // Increment signed count for student only if this is a new viewer
+  if (viewerData.role === "student" && isNewViewer) {
     await incrementSignedCount(blockId);
   }
   

@@ -22,17 +22,17 @@ function Block() {
     const [codeBlock, setCodeBlock] = useState<Schema["CodeBlock"]["type"] | null>(null);
     const [code, setCode] = useState("");
     const [role, setRole] = useState<Role>("student");
-    const [hasIncremented, setHasIncremented] = useState(false);
     const [viewer, setViewer] = useState<Schema["Viewer"]["type"] | null>(null);
     const [studentViewers, setStudentViewers] = useState<Schema["Viewer"]["type"][]>([]);
     const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
     const [studentCodeMap, setStudentCodeMap] = useState<Record<string, string>>({});
     const [previousHasMentor, setPreviousHasMentor] = useState<boolean | null>(null);
+    const [isInitialized, setIsInitialized] = useState(false);
 
-    // Initial setup and counter increment
+    // Initial setup
     useEffect(() => {
         const setup = async () => {
-            if (!id) return;
+            if (!id || isInitialized) return;
             
             const sessionData = await initializeSession(id);
             if (sessionData) {
@@ -41,7 +41,7 @@ function Block() {
                 setViewer(sessionData.viewer);
                 setCode(sessionData.code);
                 setPreviousHasMentor(sessionData.codeBlock.hasMentor);
-                setHasIncremented(true);
+                setIsInitialized(true);
             }
         };
 
@@ -49,11 +49,11 @@ function Block() {
 
         // Cleanup function to handle user leaving
         return () => {
-            if (id && hasIncremented) {
+            if (id && isInitialized) {
                 cleanupSession(id, role);
             }
         };
-    }, [id, hasIncremented]);
+    }, [id, isInitialized]);
 
     // Real-time subscription for updates
     useEffect(() => {
