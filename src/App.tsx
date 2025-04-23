@@ -2,14 +2,14 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Block from './routes/Block';
 import Lobby from './routes/Lobby';
 import NavBar from './components/NavBar';
-import { Box } from '@mui/material';
+import { Box, Container } from '@mui/material';
 
 function App() {
   return (
     <Router>
-      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
         <NavBar />
-        <Box component="main" sx={{ flexGrow: 1 }}>
+        <Box component="main" sx={{ flexGrow: 1, py: 3 }}>
           <Routes>
             <Route path="/" element={<Lobby />} />
             <Route path="/block/:id" element={<Block />} />

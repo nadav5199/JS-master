@@ -1,4 +1,4 @@
-import { Box, Typography, Divider, Paper, Avatar, TextField, IconButton } from '@mui/material';
+import { Box, Typography, Divider, Paper, Avatar, TextField, IconButton, useTheme } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import { useEffect, useState, useRef } from 'react';
@@ -30,6 +30,7 @@ function ChatTeacher({
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialMessages);
     const [isLoadingChat, setIsLoadingChat] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
+    const theme = useTheme();
 
     // Scroll to the bottom of the chat when new messages are added
     useEffect(() => {
@@ -88,15 +89,21 @@ function ChatTeacher({
         <Box sx={{ 
             my: 2, 
             p: 2, 
-            backgroundColor: '#f5f5f5', 
+            backgroundColor: 'background.paper', 
             borderRadius: 2,
             border: '1px solid',
             borderColor: 'divider',
-            height: '300px',
+            height: '350px',
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
         }}>
-            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="h6" gutterBottom sx={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                fontWeight: 'medium',
+                color: 'secondary.main'
+            }}>
                 <SmartToyIcon sx={{ mr: 1 }} /> Teacher Chat
             </Typography>
             <Divider sx={{ mb: 2 }} />
@@ -108,12 +115,22 @@ function ChatTeacher({
                 mb: 2,
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 1
+                gap: 1,
+                px: 1
             }}>
                 {chatMessages.length === 0 ? (
-                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 2 }}>
-                        Ask the teacher any questions about this problem!
-                    </Typography>
+                    <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        height: '100%'
+                    }}>
+                        <SmartToyIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} />
+                        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+                            Ask the teacher any questions about this problem!
+                        </Typography>
+                    </Box>
                 ) : (
                     chatMessages.map((msg, index) => (
                         <Box 
@@ -125,16 +142,28 @@ function ChatTeacher({
                             }}
                         >
                             {msg.role === 'assistant' && (
-                                <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32, mr: 1 }}>
+                                <Avatar sx={{ 
+                                    bgcolor: 'secondary.main', 
+                                    width: 32, 
+                                    height: 32, 
+                                    mr: 1,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                }}>
                                     <SmartToyIcon fontSize="small" />
                                 </Avatar>
                             )}
                             <Paper 
+                                elevation={1}
                                 sx={{ 
-                                    p: 1.5, 
+                                    p: 2, 
                                     maxWidth: '80%',
-                                    bgcolor: msg.role === 'user' ? 'primary.light' : 'background.paper',
-                                    color: msg.role === 'user' ? 'primary.contrastText' : 'text.primary'
+                                    bgcolor: msg.role === 'user' 
+                                        ? `${theme.palette.primary.main}15` 
+                                        : `${theme.palette.secondary.main}10`,
+                                    color: 'text.primary',
+                                    borderRadius: msg.role === 'user' ? '12px 12px 0 12px' : '12px 12px 12px 0',
+                                    borderLeft: msg.role === 'assistant' ? `2px solid ${theme.palette.secondary.main}` : 'none',
+                                    borderRight: msg.role === 'user' ? `2px solid ${theme.palette.primary.main}` : 'none',
                                 }}
                             >
                                 <Typography variant="body2">
@@ -149,9 +178,19 @@ function ChatTeacher({
                         <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32, mr: 1 }}>
                             <SmartToyIcon fontSize="small" />
                         </Avatar>
-                        <Typography variant="body2" color="text.secondary">
-                            Thinking...
-                        </Typography>
+                        <Paper sx={{ 
+                            p: 2, 
+                            borderRadius: '12px 12px 12px 0',
+                            borderLeft: `2px solid ${theme.palette.secondary.main}`,
+                            bgcolor: `${theme.palette.secondary.main}10`,
+                            display: 'flex',
+                            alignItems: 'center'
+                        }}>
+                            <Typography variant="body2" color="text.secondary">
+                                Thinking
+                                <span className="dot-animation">...</span>
+                            </Typography>
+                        </Paper>
                     </Box>
                 )}
                 <div ref={chatEndRef} />
@@ -167,11 +206,30 @@ function ChatTeacher({
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                     disabled={isLoadingChat}
+                    InputProps={{
+                        sx: {
+                            borderRadius: '24px',
+                            '& .MuiOutlinedInput-notchedOutline': {
+                                borderColor: 'divider'
+                            }
+                        }
+                    }}
                 />
                 <IconButton 
-                    color="primary" 
+                    color="secondary"
                     onClick={handleSendMessage}
                     disabled={isLoadingChat || !chatInput.trim()}
+                    sx={{ 
+                        backgroundColor: chatInput.trim() ? 'secondary.main' : 'action.disabledBackground',
+                        color: 'white',
+                        '&:hover': {
+                            backgroundColor: 'secondary.dark',
+                        },
+                        '&.Mui-disabled': {
+                            backgroundColor: 'action.disabledBackground',
+                            color: 'action.disabled'
+                        }
+                    }}
                 >
                     <SendIcon />
                 </IconButton>
