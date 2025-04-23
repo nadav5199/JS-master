@@ -14,11 +14,20 @@ interface ChatTeacherProps {
     problemDescription: string;
     skeletonCode: string;
     solution: string;
+    initialMessages?: ChatMessage[];
+    onMessagesChange?: (messages: ChatMessage[]) => void;
 }
 
-function ChatTeacher({ code, problemDescription, skeletonCode, solution }: ChatTeacherProps) {
+function ChatTeacher({ 
+    code, 
+    problemDescription, 
+    skeletonCode, 
+    solution, 
+    initialMessages = [],
+    onMessagesChange 
+}: ChatTeacherProps) {
     const [chatInput, setChatInput] = useState('');
-    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+    const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialMessages);
     const [isLoadingChat, setIsLoadingChat] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -28,6 +37,13 @@ function ChatTeacher({ code, problemDescription, skeletonCode, solution }: ChatT
             chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
     }, [chatMessages]);
+
+    // Notify parent component when messages change if callback is provided
+    useEffect(() => {
+        if (onMessagesChange) {
+            onMessagesChange(chatMessages);
+        }
+    }, [chatMessages, onMessagesChange]);
 
     const handleSendMessage = async () => {
         if (!chatInput.trim() || !code || !problemDescription || !skeletonCode || !solution) return;

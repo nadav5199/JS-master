@@ -1,14 +1,13 @@
-import { Card, CardContent, Typography, Box, Chip, Button, TextField, IconButton, Divider, Paper, Avatar } from '@mui/material';
+import { Card, CardContent, Typography, Box, Chip, Button } from '@mui/material';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
 import type { Schema } from "../../amplify/data/resource";
 import { Role, updateViewerSolvedStatus, checkSolution } from "../utils/codeBlockManager";
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { getHint } from '../utils/openAiService.js';
-import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
-import ChatTeacher from './ChatTeacher';
+import ChatTeacher, { ChatMessage } from './ChatTeacher';
 
 interface StudentViewProps {
     codeBlock: Schema["CodeBlock"]["type"];
@@ -23,6 +22,7 @@ function StudentView({ codeBlock, code, role, onCodeChange, viewerId }: StudentV
     const [hint, setHint] = useState<string | null>(null);
     const [isLoadingHint, setIsLoadingHint] = useState(false);
     const [showChat, setShowChat] = useState(false);
+    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
     // Check if code matches solution whenever code or codeBlock changes
     useEffect(() => {
@@ -146,6 +146,8 @@ function StudentView({ codeBlock, code, role, onCodeChange, viewerId }: StudentV
                         problemDescription={codeBlock.description || ''}
                         skeletonCode={codeBlock.skeletonCode || ''}
                         solution={codeBlock.solution || ''}
+                        initialMessages={chatMessages}
+                        onMessagesChange={setChatMessages}
                     />
                 )}
 
