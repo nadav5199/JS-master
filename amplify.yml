@@ -9,6 +9,7 @@ frontend:
   phases:
     build:
       commands:
+        - echo "VITE_OPENAI_API_KEY=$VITE_OPENAI_API_KEY" >> .env
         - npm run build
   artifacts:
     baseDirectory: dist
