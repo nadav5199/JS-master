@@ -30,14 +30,18 @@ export const incrementSignedCount = async (blockId: string): Promise<void> => {
 
 // Decrement the signed count for a code block
 export const decrementSignedCount = async (blockId: string): Promise<void> => {
-  const result = await client.models.CodeBlock.get({ id: blockId });
-  const currentSignedCount = result.data?.signed || 0;
-  
-  if (currentSignedCount > 0) {
-    await client.models.CodeBlock.update({
-      id: blockId,
-      signed: currentSignedCount - 1
-    });
+  try {
+    const result = await client.models.CodeBlock.get({ id: blockId });
+    const currentSignedCount = result.data?.signed || 0;
+    
+    if (currentSignedCount > 0) {
+      await client.models.CodeBlock.update({
+        id: blockId,
+        signed: currentSignedCount - 1
+      });
+    }
+  } catch (error) {
+    console.error('Error decrementing signed count:', error);
   }
 };
 
@@ -242,11 +246,29 @@ export const subscribeToViewers = (
     next: (data) => {
       console.log('Student viewers update:', data.items.length, 'students');
       onUpdate(data.items);
+      
+      // Update the signed count to match the actual viewer count
+      updateSignedCountToMatchViewers(codeId, data.items.length);
     },
     error: (error) => console.error('Viewer subscription error:', error)
   });
 
   return subscription;
+};
+
+// Helper function to ensure signed count matches actual viewers
+export const updateSignedCountToMatchViewers = async (codeId: string, viewerCount: number): Promise<void> => {
+  try {
+    const result = await client.models.CodeBlock.get({ id: codeId });
+    if (result.data && result.data.signed !== viewerCount) {
+      await client.models.CodeBlock.update({
+        id: codeId,
+        signed: viewerCount
+      });
+    }
+  } catch (error) {
+    console.error('Error updating signed count:', error);
+  }
 };
 
 // Update viewer's solved status
