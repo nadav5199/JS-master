@@ -55,7 +55,7 @@ function MentorView({
                 {/* Student Selection and Code Viewing Section */}
                 <Box sx={{ display: 'flex', mt: 3 }}>
                     {/* Student List */}
-                    <Box sx={{ width: '25%', borderRight: '1px solid #e0e0e0', pr: 2 }}>
+                    <Box sx={{ width: '25%', borderRight: '1px solid #e0e0e0', pr: 2, height: '400px', overflow: 'hidden' }}>
                         <StudentList
                             studentViewers={studentViewers}
                             selectedStudent={selectedStudent}

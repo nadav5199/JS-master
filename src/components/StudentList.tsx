@@ -15,12 +15,12 @@ function StudentList({
     onStudentSelect
 }: StudentListProps) {
     return (
-        <Box sx={{ width: '100%' }}>
+        <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Typography variant="h6" gutterBottom>
                 Students ({studentViewers.length})
             </Typography>
             {studentViewers.length > 0 ? (
-                <List>
+                <List sx={{ flexGrow: 1, overflow: 'auto', maxHeight: 'calc(100% - 40px)' }}>
                     {studentViewers.map((studentViewer) => (
                         <ListItem
                             key={studentViewer.id}
