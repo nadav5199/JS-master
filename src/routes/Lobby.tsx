@@ -37,9 +37,14 @@ function Lobby() {
             </Typography>
 
             {loading ? (
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
+                <Box sx={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, 
+                    gap: 3,
+                    minHeight: '200px'
+                }}>
                     {[1, 2, 3, 4].map((item) => (
-                        <Paper key={item} sx={{ p: 3, height: '100%' }}>
+                        <Paper key={item} sx={{ p: 3, height: '100%', minHeight: '180px', display: 'flex', flexDirection: 'column' }}>
                             <Skeleton variant="rectangular" height={40} width="60%" sx={{ mb: 2 }} />
                             <Skeleton variant="rectangular" height={20} sx={{ mb: 1 }} />
                             <Skeleton variant="rectangular" height={20} sx={{ mb: 1 }} />
@@ -48,9 +53,14 @@ function Lobby() {
                     ))}
                 </Box>
             ) : codeBlocks.length > 0 ? (
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
+                <Box sx={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, 
+                    gap: 3,
+                    minHeight: '200px'
+                }}>
                     {codeBlocks.map((codeBlock) => (
-                        <Box key={codeBlock.id}>
+                        <Box key={codeBlock.id} sx={{ height: '100%', minHeight: '180px' }}>
                             <CodeBlocksCard
                                 id={codeBlock.id ?? ""}
                                 title={codeBlock.title ?? ""}
