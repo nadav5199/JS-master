@@ -5,6 +5,18 @@ const client = generateClient<Schema>();
 
 export type Role = "mentor" | "student";
 
+// Generate a unique session ID for this browser tab
+const generateSessionId = () => {
+  // Check if we already have a session ID in this tab
+  let sessionId = sessionStorage.getItem('user-session-id');
+  if (!sessionId) {
+    // Generate a random session ID if we don't have one
+    sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    sessionStorage.setItem('user-session-id', sessionId);
+  }
+  return sessionId;
+};
+
 // Increment the signed count for a code block
 export const incrementSignedCount = async (blockId: string): Promise<void> => {
   const result = await client.models.CodeBlock.get({ id: blockId });
@@ -118,15 +130,34 @@ export const createViewer = async (
   userRole: Role, 
   initialCode: string
 ): Promise<Schema["Viewer"]["type"]> => {
+  // Get session ID for this browser tab
+  const sessionId = generateSessionId();
+  
+  // Check if we already have a viewer for this session
+  const existingViewerId = sessionStorage.getItem(`block-${codeId}-viewer`);
+  
+  if (existingViewerId) {
+    // Try to get the existing viewer
+    const existing = await client.models.Viewer.get({ id: existingViewerId });
+    if (existing.data) {
+      return existing.data;
+    }
+    // If viewer no longer exists in the database, remove it from sessionStorage
+    sessionStorage.removeItem(`block-${codeId}-viewer`);
+  }
+  
+  // Create a new viewer
   const viewer = await client.models.Viewer.create({
     role: userRole,
     code: initialCode,
     codeId: codeId
   });
   
-  // Store the viewer ID in local storage for reference
+  // Store the session ID in sessionStorage for this tab only
   if (viewer.data && viewer.data.id) {
-    localStorage.setItem(`block-${codeId}-viewer`, viewer.data.id);
+    sessionStorage.setItem(`block-${codeId}-viewer`, viewer.data.id);
+    // Also store this viewer's session association (but not in the database model)
+    sessionStorage.setItem(`viewer-${viewer.data.id}-session`, sessionId);
   }
   
   if (!viewer.data) {
@@ -138,11 +169,15 @@ export const createViewer = async (
 
 // Get existing viewer or return null if not found
 export const getExistingViewer = async (codeId: string): Promise<Schema["Viewer"]["type"] | null> => {
-  const viewerId = localStorage.getItem(`block-${codeId}-viewer`);
+  const viewerId = sessionStorage.getItem(`block-${codeId}-viewer`);
   
   if (viewerId) {
     const result = await client.models.Viewer.get({ id: viewerId });
-    return result.data;
+    if (result.data) {
+      return result.data;
+    }
+    // If viewer no longer exists in database, remove from sessionStorage
+    sessionStorage.removeItem(`block-${codeId}-viewer`);
   }
   
   return null;
@@ -158,15 +193,15 @@ export const updateViewerCode = async (viewerId: string, code: string): Promise<
 
 // Delete a viewer instance
 export const deleteViewer = async (blockId: string): Promise<void> => {
-  const viewerId = localStorage.getItem(`block-${blockId}-viewer`);
+  const viewerId = sessionStorage.getItem(`block-${blockId}-viewer`);
   
   if (viewerId) {
     try {
       await client.models.Viewer.delete({
         id: viewerId
       });
-      // Remove viewer ID from local storage
-      localStorage.removeItem(`block-${blockId}-viewer`);
+      // Remove viewer ID from sessionStorage
+      sessionStorage.removeItem(`block-${blockId}-viewer`);
     } catch (error) {
       console.error('Error deleting viewer:', error);
     }
