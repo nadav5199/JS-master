@@ -1,15 +1,27 @@
+/**
+ * Lobby page component that displays a grid of available code blocks.
+ * 
+ * Features:
+ * - Fetches code blocks from the AWS Amplify backend
+ * - Displays code blocks in a responsive grid layout
+ * - Shows loading skeletons while data is being fetched
+ * - Handles empty state when no code blocks are available
+ */
 import { useEffect, useState } from "react";
 import type { Schema } from "../../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
 import CodeBlocksCard from "../components/CodeBlocksCard";
 import { Container, Typography, Box, Skeleton, Paper } from "@mui/material";
 
+// Initialize Amplify Data client
 const client = generateClient<Schema>();
 
 function Lobby() {
+    // State for storing code blocks and loading status
     const [codeBlocks, setCodeBlocks] = useState<Array<Schema["CodeBlock"]["type"]>>([]);
     const [loading, setLoading] = useState(true);
 
+    // Fetch code blocks when component mounts
     useEffect(() => {
         setLoading(true);
         client.models.CodeBlock.observeQuery().subscribe({
@@ -22,6 +34,7 @@ function Lobby() {
 
     return (
         <Container maxWidth="lg" sx={{ py: 4 }}>
+            {/* Page Title */}
             <Typography 
                 variant="h4" 
                 component="h1" 
@@ -36,6 +49,7 @@ function Lobby() {
                 Choose a Code Block
             </Typography>
 
+            {/* Loading State */}
             {loading ? (
                 <Box sx={{ 
                     display: 'grid', 

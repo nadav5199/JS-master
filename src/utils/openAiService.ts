@@ -1,12 +1,30 @@
+/**
+ * OpenAI service utility for interacting with the OpenAI API.
+ * This module provides functions to get hints and chat responses 
+ * for the coding teacher assistant feature.
+ */
 import OpenAI from 'openai';
 
-// Initialize the OpenAI client
-// The API key will be available from Amplify environment variables
+/**
+ * Initialize the OpenAI client with the API key from environment variables.
+ * Note: dangerouslyAllowBrowser is used for client-side development.
+ * In production, API calls should be proxied through a backend service.
+ */
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true // Only for client-side use in development
 });
 
+/**
+ * Get a hint for the current code problem.
+ * 
+ * @param currentCode - The code currently written by the student
+ * @param problemDescription - The description of the problem being solved
+ * @param skeletonCode - The initial code provided to the student
+ * @param solution - The solution code (not revealed to student)
+ * @returns A hint message to help the student progress
+ * @throws Error if the API call fails
+ */
 export const getHint = async (
   currentCode: string, 
   problemDescription: string,
@@ -50,8 +68,20 @@ export const getHint = async (
     console.error('Error calling OpenAI API:', error);
     throw new Error('Failed to generate hint');
   }
-}; 
+};
 
+/**
+ * Get a response from the AI teacher in the chat interface.
+ * 
+ * @param question - The question asked by the student
+ * @param currentCode - The code currently written by the student
+ * @param problemDescription - The description of the problem being solved
+ * @param skeletonCode - The initial code provided to the student
+ * @param solution - The solution code (not revealed to student)
+ * @param chatHistory - Previous messages in the chat
+ * @returns A response message from the AI teacher
+ * @throws Error if the API call fails
+ */
 export const getChatResponse = async (
   question: string, 
   currentCode: string, 

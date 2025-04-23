@@ -1,20 +1,42 @@
+/**
+ * ChatTeacher component provides an AI-powered chat interface for students.
+ * 
+ * Features:
+ * - Real-time chat with AI teacher assistant
+ * - Context-aware responses based on the current code problem
+ * - Message history tracking and scrolling
+ * - Visual indicators for messages and loading states
+ * - Input field for asking questions
+ */
 import { Box, Typography, Divider, Paper, Avatar, TextField, IconButton, useTheme } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import { useEffect, useState, useRef } from 'react';
 import { getChatResponse } from '../utils/openAiService';
 
+/**
+ * Represents a single message in the chat
+ */
 export interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
 }
 
+/**
+ * Props for the ChatTeacher component
+ */
 interface ChatTeacherProps {
+    /** Current code written by the student */
     code: string;
+    /** Description of the problem being solved */
     problemDescription: string;
+    /** Initial skeleton code provided to the student */
     skeletonCode: string;
+    /** Solution code for the problem (not shared with student) */
     solution: string;
+    /** Initial messages to populate the chat */
     initialMessages?: ChatMessage[];
+    /** Callback when messages change */
     onMessagesChange?: (messages: ChatMessage[]) => void;
 }
 
@@ -46,6 +68,9 @@ function ChatTeacher({
         }
     }, [chatMessages, onMessagesChange]);
 
+    /**
+     * Handles sending a new message and getting a response from the AI
+     */
     const handleSendMessage = async () => {
         if (!chatInput.trim() || !code || !problemDescription || !skeletonCode || !solution) return;
         
@@ -98,6 +123,7 @@ function ChatTeacher({
             flexDirection: 'column',
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
         }}>
+            {/* Header */}
             <Typography variant="h6" gutterBottom sx={{ 
                 display: 'flex', 
                 alignItems: 'center',
@@ -141,6 +167,7 @@ function ChatTeacher({
                                 mb: 1
                             }}
                         >
+                            {/* Assistant avatar */}
                             {msg.role === 'assistant' && (
                                 <Avatar sx={{ 
                                     bgcolor: 'secondary.main', 
@@ -152,6 +179,7 @@ function ChatTeacher({
                                     <SmartToyIcon fontSize="small" />
                                 </Avatar>
                             )}
+                            {/* Message bubble */}
                             <Paper 
                                 elevation={1}
                                 sx={{ 
@@ -173,6 +201,7 @@ function ChatTeacher({
                         </Box>
                     ))
                 )}
+                {/* Loading indicator */}
                 {isLoadingChat && (
                     <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
                         <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32, mr: 1 }}>

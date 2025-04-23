@@ -1,3 +1,16 @@
+/**
+ * CodeBlocksCard component displays a single code block in the lobby.
+ * 
+ * Features:
+ * - Displays title and description of a code block
+ * - Provides hover effects for better user interaction
+ * - Navigates to the block detail page when clicked
+ * - Ensures consistent card height with text truncation
+ * 
+ * @param {string} title - The title of the code block
+ * @param {string} description - The description of the code block
+ * @param {string} id - The unique identifier of the code block
+ */
 import { Card, CardContent, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
