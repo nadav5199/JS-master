@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Block from './routes/Block';
 import Lobby from './routes/Lobby';
 import NavBar from './components/NavBar';
-import { Box, Container } from '@mui/material';
+import { Box } from '@mui/material';
 
 function App() {
   return (

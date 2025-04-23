@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Schema } from "../../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
 import CodeBlocksCard from "../components/CodeBlocksCard";
-import { Container, Typography, Grid, Box, Skeleton, Paper } from "@mui/material";
+import { Container, Typography, Box, Skeleton, Paper } from "@mui/material";
 
 const client = generateClient<Schema>();
 
