@@ -66,7 +66,7 @@ function Block() {
             // Check if mentor status has changed
             const newHasMentor = handleMentorStatusChange(
                 previousHasMentor, 
-                updatedCodeBlock.hasMentor, 
+                updatedCodeBlock.hasMentor ?? null,
                 role,
                 () => navigate('/')
             );
