@@ -18,6 +18,7 @@ const schema = a.schema({
       id: a.id(),
       role: a.string(),
       code: a.string(),
+      solved: a.boolean(),
       codeId: a.id(),
       codeBlocks: a.belongsTo('CodeBlock', 'codeId')
     })

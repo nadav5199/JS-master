@@ -1,5 +1,6 @@
 // src/components/StudentList.tsx
-import { Box, Typography, List, ListItem, ListItemText } from '@mui/material';
+import { Box, Typography, List, ListItem, ListItemText, ListItemIcon } from '@mui/material';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import type { Schema } from "../../amplify/data/resource";
 
 interface StudentListProps {
@@ -34,6 +35,11 @@ function StudentList({
                                 cursor: 'pointer'
                             }}
                         >
+                            {studentViewer.solved && (
+                                <ListItemIcon sx={{ minWidth: '30px' }}>
+                                    <CheckCircleIcon color="success" />
+                                </ListItemIcon>
+                            )}
                             <ListItemText
                                 primary={`Student ${studentViewers.indexOf(studentViewer) + 1}`}
                                 secondary={`ID: ${studentViewer.id ? studentViewer.id.substring(0, 8) : 'unknown'}...`}

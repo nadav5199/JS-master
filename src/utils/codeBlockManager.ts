@@ -247,4 +247,12 @@ export const subscribeToViewers = (
   });
 
   return subscription;
+};
+
+// Update viewer's solved status
+export const updateViewerSolvedStatus = async (viewerId: string, solved: boolean): Promise<void> => {
+  await client.models.Viewer.update({
+    id: viewerId,
+    solved: solved
+  });
 }; 

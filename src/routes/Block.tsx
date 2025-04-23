@@ -209,6 +209,7 @@ function Block() {
                     code={code}
                     role={role}
                     onCodeChange={handleCodeChange}
+                    viewerId={viewer?.id || undefined}
                 />
             ) : (
                 <MentorView 
